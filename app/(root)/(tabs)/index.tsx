@@ -19,12 +19,6 @@ export default function Index() {
       ) : (
         <Text className="text-green-500 font-rubikMedium mb-4">You are logged in!</Text>
       )}
-
-      <View className="gap-y-4">
-        <Link className="text-blue-500 font-rubik" href="/explore">Go to explore page</Link>
-        <Link className="text-blue-500 font-rubik" href="/profile">Go to profile page</Link>
-        <Link className="text-blue-500 font-rubik" href="/properties/1">Go to property page</Link> 
-      </View>
     </View>
   );
 }
