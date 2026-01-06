@@ -1,7 +1,6 @@
-import { Account, Avatars, Client, OAuthProvider } from 'react-native-appwrite';
 import * as Linking from 'expo-linking';
 import { openAuthSessionAsync } from 'expo-web-browser';
-
+import { Account, Avatars, Client, OAuthProvider } from 'react-native-appwrite';
 
 const Endpoint = process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT;
 const ProjectId = process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID;
@@ -20,9 +19,7 @@ client
     .setPlatform(config.platform!);
 
 export const avatar = new Avatars(client);
-
 export const account = new Account(client);
-
 
 export async function login() {
     try {
@@ -33,50 +30,48 @@ export async function login() {
             redirectUri
         );
 
-        if(!response) throw new Error('Login failed');
+        if (!response) throw new Error('Login failed');
 
         const browserResult = await openAuthSessionAsync(
             response.toString(),
             redirectUri
         );
 
-        if(browserResult.type !== 'success') throw new Error('Login failed');
+        if (browserResult.type !== 'success') throw new Error('Login failed');
 
         const url = new URL(browserResult.url);
-
         const secret = url.searchParams.get('secret')?.toString();
         const userId = url.searchParams.get('userId')?.toString();
 
-        if(!secret || !userId) throw new Error('Failed to Login');
+        if (!secret || !userId) throw new Error('Failed to Login');
 
-        const session = await account.createSession(secret, userId);
+        // FIXED: Argument order is (userId, secret)
+        const session = await account.createSession(userId, secret);
 
-        if(!session) throw new Error('Failed to create session');
+        if (!session) throw new Error('Failed to create session');
         return true;
-    
+
     } catch (error) {
-        console.error("Login failed:", error)
+        console.error("Login failed:", error);
         return false;
     }
 }
-
 
 export async function logout() {
     try {
         await account.deleteSession('current');
         return true;
     } catch (error) {
-        console.error("Logout failed:", error)
+        console.error("Logout failed:", error);
         return false;
     }
 }
 
-
-export async function getUser() {
+export async function getCurrentUser() {
     try {
         const response = await account.get();
 
-        if(response.$id) {
+        if (response.$id) {
             const userAvatar = avatar.getInitials(response.name);
 
             return {
@@ -84,9 +79,9 @@ export async function getUser() {
                 avatar: userAvatar.toString(),
             }
         }
+        return null;
     } catch (error) {
-        console.error("Failed to get user:", error)
+        // Silencing the error log because it's expected when user is not logged in
         return null;
     }
 }
- 
