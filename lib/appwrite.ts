@@ -70,18 +70,21 @@ export async function logout() {
 export async function getCurrentUser() {
     try {
         const response = await account.get();
+        if (!response.$id) return null;
 
-        if (response.$id) {
-            const userAvatar = avatar.getInitials(response.name);
+        const name = encodeURIComponent(response.name || "U");
 
-            return {
-                ...response,
-                avatar: userAvatar.toString(),
-            }
-        }
-        return null;
-    } catch (error) {
-        // Silencing the error log because it's expected when user is not logged in
+        const avatarUrl =
+            `${config.endpoint}/avatars/initials` +
+            `?name=${name}` +
+            `&width=256&height=256&format=png` +
+            `&project=${config.projectId}`;
+
+        return {
+            ...response,
+            avatar: avatarUrl,
+        };
+    } catch {
         return null;
     }
 }
