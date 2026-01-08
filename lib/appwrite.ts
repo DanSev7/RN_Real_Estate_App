@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { openAuthSessionAsync } from 'expo-web-browser';
-import { Account, Avatars, Client, Databases, OAuthProvider } from 'react-native-appwrite';
+import { Account, Avatars, Client, Databases, OAuthProvider, Query } from 'react-native-appwrite';
 
 const Endpoint = process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT;
 const ProjectId = process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID;
@@ -98,6 +98,67 @@ export async function getCurrentUser() {
             avatar: avatarUrl,
         };
     } catch {
+        return null;
+    }
+}
+
+export async function getLatestProperties() {
+    try {
+        const response = await database.listDocuments(
+            config.databaseId!,
+            config.propertiesTableId!,
+            [Query.orderAsc('createdAt'), Query.limit(5)]
+        );
+        return response.documents;
+    } catch (error) {
+        console.error("Failed to get latest properties:", error);
+        return [];
+    }
+}
+
+export async function getProperties ({ filter, query, limit }: {
+    filter: string;
+    query: string;
+    limit?: number;
+}) {
+    try {
+        const buildQuery = [Query.orderDesc('$createdAt')];
+
+        if(filter && filter !== 'All') buildQuery.push(Query.equal('type', filter))
+        if(query) {
+            buildQuery.push(
+                Query.or([
+                    Query.search('name', query), 
+                    Query.search('address', query), 
+                    Query.search('type', query)
+                ])
+            );
+        }
+        
+        if(limit) buildQuery.push(Query.limit(limit));
+
+        const response = await database.listDocuments(
+            config.databaseId!,
+            config.propertiesTableId!,
+            buildQuery
+        );
+        return response.documents;
+    } catch (error) {
+        console.error("Failed to get properties:", error);
+        return [];
+    }
+}
+
+export async function getPropertyById(id: string) {
+    try {
+        const response = await database.getDocument(
+            config.databaseId!,
+            config.propertiesTableId!,
+            id
+        );
+        return response;
+    } catch (error) {
+        console.error("Failed to get property by id:", error);
         return null;
     }
 }
