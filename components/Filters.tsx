@@ -28,6 +28,7 @@ return (
             <TouchableOpacity 
                 className={`flex flex-col items-start mr-4 px-4 py-2 rounded-full ${selectedCategory === item.category ? 'bg-primary-300' : 'bg-primary-100 border border-primary-200'}`}
                 onPress={() => handleCategoryPress(item.category)}
+                key={index}
             >
                 <Text className={`text-sm ${selectedCategory === item.category ? 'text-white font-rubikBold' : 'text-black-300 font-rubik'}`}>{item.title}</Text>
             </TouchableOpacity>
