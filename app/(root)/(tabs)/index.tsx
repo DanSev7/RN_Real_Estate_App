@@ -109,8 +109,6 @@ export default function Index() {
             bounces={false}
             showsHorizontalScrollIndicator={false}
             contentContainerClassName="flex gap-5 mt-5"
-            // numColumns={2}
-            // columnWrapperClassName="flex gap-5"
             />
           )}
           </View>
