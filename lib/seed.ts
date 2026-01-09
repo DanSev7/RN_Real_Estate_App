@@ -1,5 +1,5 @@
 import { ID } from "react-native-appwrite";
-import { database, config } from "./appwrite";
+import { config, database } from "./appwrite";
 import {
   agentImages,
   galleryImages,
@@ -140,8 +140,12 @@ async function seed() {
     for (let i = 1; i <= 20; i++) {
       const assignedAgent = agents[Math.floor(Math.random() * agents.length)];
 
-      const assignedReviews = getRandomSubset(reviews, 5, 7); // 5 to 7 reviews
-      const assignedGalleries = getRandomSubset(galleries, 3, 8); // 3 to 8 galleries
+      // Ensure we have enough reviews and galleries for each property
+      const assignedReviews = reviews.length > 0 ? getRandomSubset(reviews, Math.min(5, reviews.length), Math.min(7, reviews.length)) : [];
+      const assignedGalleries = galleries.length > 0 ? getRandomSubset(galleries, Math.min(3, galleries.length), Math.min(8, galleries.length)) : [];
+      
+      // Debug logging
+      console.log(`Property ${i}: Assigned ${assignedReviews.length} reviews and ${assignedGalleries.length} galleries`);
 
       const selectedFacilities = facilities
         .sort(() => 0.5 - Math.random())
