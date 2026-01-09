@@ -155,9 +155,66 @@ export async function getPropertyById(id: string) {
         const response = await database.getDocument(
             config.databaseId!,
             config.propertiesTableId!,
+            // config.agentsTableId!,
+            // config.galleriesTableId!,
+            // config.reviewsTableId!,
             id
         );
-        return response;
+        console.log("DATABASE ID : ", response)
+        
+        // Fetch related data
+        try {
+            // Get agent details if agent ID exists
+            let agentDetails: any = null;
+            if (response.agent) {
+                agentDetails = await database.getDocument(
+                    config.databaseId!,
+                    config.agentsTableId!,
+                    response.agent
+                );
+            }
+            
+            // Get gallery details if gallery IDs exist
+            let galleryDetails: any[] = [];
+            if (response.gallery && Array.isArray(response.gallery) && response.gallery.length > 0) {
+                const galleryPromises = response.gallery.map(galleryId => 
+                    database.getDocument(
+                        config.databaseId!,
+                        config.galleriesTableId!,
+                        galleryId
+                    )
+                );
+                galleryDetails = await Promise.all(galleryPromises);
+            }
+            
+            // Get review details if review IDs exist
+            let reviewDetails: any[] = [];
+            if (response.reviews && Array.isArray(response.reviews) && response.reviews.length > 0) {
+                const reviewPromises = response.reviews.map(reviewId => 
+                    database.getDocument(
+                        config.databaseId!,
+                        config.reviewsTableId!,
+                        reviewId
+                    )
+                );
+                reviewDetails = await Promise.all(reviewPromises);
+            }
+            
+            // Combine the property with its related data
+            const propertyWithRelations = {
+                ...response,
+                agent: agentDetails,
+                gallery: galleryDetails,
+                reviews: reviewDetails,
+            };
+            
+            console.log("PROPERTY WITH RELATIONS : ", propertyWithRelations);
+            return propertyWithRelations as unknown as PropertyDocument;
+        } catch (relationError) {
+            console.error("Error fetching related data:", relationError);
+            // Return original response if relation fetching fails
+            return response as unknown as PropertyDocument;
+        }
     } catch (error) {
         console.error("Failed to get property by id:", error);
         return null;

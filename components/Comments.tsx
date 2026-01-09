@@ -13,7 +13,7 @@ const Comment = ({ item }: Props) => {
     <View className="flex flex-col items-start">
       <View className="flex flex-row items-center">
         <Image source={{ uri: item.avatar }} className="size-14 rounded-full" />
-        <Text className="text-base text-black-300 text-start font-rubik-bold ml-3">
+        <Text className="text-base text-black-300 text-start font-rubikBold ml-3">
           {item.name}
         </Text>
       </View>
@@ -29,7 +29,7 @@ const Comment = ({ item }: Props) => {
             className="size-5"
             tintColor={"#0061FF"}
           />
-          <Text className="text-black-300 text-sm font-rubik-medium ml-2">
+          <Text className="text-black-300 text-sm font-rubikMedium ml-2">
             120
           </Text>
         </View>
