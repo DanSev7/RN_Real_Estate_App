@@ -1,17 +1,52 @@
 import { Card, FeaturedCard } from "@/components/Cards";
 import Filters from "@/components/Filters";
+import NoResults from "@/components/NoResults";
 import Search from "@/components/Search";
 import icons from "@/constants/icons";
+import { getLatestProperties, getProperties } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
-import seed from "@/lib/seed";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import { PropertyDocument } from "@/lib/types";
+import { useAppwrite } from "@/lib/useAppwrite";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // ScrollView (for scrollable areas)
 // FlatList (for lists of items)
 
 export default function Index() {
-  const { isLoggedIn, loading } = useGlobalContext();
+  const { isLoggedIn, loading: globalLoading } = useGlobalContext();
+  const params = useLocalSearchParams<{query?: string; filter?: string;}>();
+
+  const { 
+    data: latestProperties, 
+    loading: latestPropertiesLoading
+  } = useAppwrite<PropertyDocument[], Record<string, string | number>>({fn: getLatestProperties})
+
+  const {
+    data: properties, 
+    loading,
+    refetch
+  } = useAppwrite<PropertyDocument[], {filter: string; query: string; limit: number}>({fn: getProperties,
+    params: {
+      filter: params.filter!,
+      query: params.query!,
+      limit: 6
+    },
+    skip: true,
+  })
+  
+  const handleCardPress = (id: string) => router.push(`/properties/${id}`)
+
+  useEffect(()=>{
+    refetch({
+      filter: params.filter!,
+      query: params.query!,
+      limit: 6
+    });
+  }, [params.filter, params.query])
+
   const { user } = useGlobalContext();
   // OPTIONAL: If you want logged-in users to skip this page and go straight to Profile
   // if (!loading && isLoggedIn) return <Redirect href="/profile" />;
@@ -19,15 +54,21 @@ export default function Index() {
   return (
     <SafeAreaView className="bg-white h-full">
       <FlatList 
-        data={[1, 2]}
+        data={properties}
         renderItem={({ item }) => 
-          <Card />
+          <Card item={item} onPress={() => handleCardPress(item.$id)} key={item.$id} />
         }
         keyExtractor={(item) => item.toString()}
         numColumns={2}
         contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          loading ? (
+            <ActivityIndicator size="large" className="text-primary-300 mt-5" />
+          ) : 
+            <NoResults />
+        }
         ListHeaderComponent={
 
         <View className="px-5">
@@ -55,20 +96,23 @@ export default function Index() {
                 <Text className="text-base text-primary-300 font-rubikBold">See All</Text>
               </TouchableOpacity>
             </View>
-
-            <FlatList 
-              data={[4, 5, 6]}
+            {latestPropertiesLoading ? 
+              <ActivityIndicator size="large" className="text-primary-300" /> : 
+              !latestProperties || latestProperties.length === 0 ? <NoResults /> : (
+              <FlatList 
+              data={latestProperties|| []}
               renderItem={({ item }) => 
-                <FeaturedCard />
-              }
-              keyExtractor={(item) => item.toString()}
-              horizontal
-              bounces={false}
-              showsHorizontalScrollIndicator={false}
-              contentContainerClassName="flex gap-5 mt-5"
-              // numColumns={2}
-              // columnWrapperClassName="flex gap-5"
+                <FeaturedCard item={item} onPress={() => handleCardPress(item.$id)} />
+            }
+            keyExtractor={(item) => item.$id}
+            horizontal
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="flex gap-5 mt-5"
+            // numColumns={2}
+            // columnWrapperClassName="flex gap-5"
             />
+          )}
           </View>
           
 

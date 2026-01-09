@@ -170,7 +170,7 @@ async function seed() {
           bathrooms: Math.floor(Math.random() * 5) + 1,
           rating: Math.floor(Math.random() * 5) + 1,
           facilities: selectedFacilities,
-          images: image,
+          image: image,
           agent: assignedAgent.$id,
           reviews: assignedReviews.map((review) => review.$id),
           gallery: assignedGalleries.map((gallery) => gallery.$id),

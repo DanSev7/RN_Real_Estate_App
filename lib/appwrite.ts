@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
 import { openAuthSessionAsync } from 'expo-web-browser';
 import { Account, Avatars, Client, Databases, OAuthProvider, Query } from 'react-native-appwrite';
+import { PropertyDocument } from './types';
 
 const Endpoint = process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT;
 const ProjectId = process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID;
@@ -102,14 +103,14 @@ export async function getCurrentUser() {
     }
 }
 
-export async function getLatestProperties() {
+export async function getLatestProperties(): Promise<PropertyDocument[]> {
     try {
         const response = await database.listDocuments(
             config.databaseId!,
             config.propertiesTableId!,
-            [Query.orderAsc('createdAt'), Query.limit(5)]
+            [Query.orderDesc('$createdAt'), Query.limit(5)]
         );
-        return response.documents;
+        return response.documents as unknown as PropertyDocument[];
     } catch (error) {
         console.error("Failed to get latest properties:", error);
         return [];
@@ -120,7 +121,7 @@ export async function getProperties ({ filter, query, limit }: {
     filter: string;
     query: string;
     limit?: number;
-}) {
+}): Promise<PropertyDocument[]> {
     try {
         const buildQuery = [Query.orderDesc('$createdAt')];
 
@@ -142,7 +143,7 @@ export async function getProperties ({ filter, query, limit }: {
             config.propertiesTableId!,
             buildQuery
         );
-        return response.documents;
+        return response.documents as unknown as PropertyDocument[];
     } catch (error) {
         console.error("Failed to get properties:", error);
         return [];
